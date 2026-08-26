@@ -7,16 +7,16 @@ const DEFAULT_DATA = {
   routines: [
     {
       id: 'r-manana',
-      name: 'Rutina de Mañana',
-      icon: '🌞',
+      name: '¡Vamos a la escuela!',
+      icon: '🏫',
       tasks: [
-        { id: 't1', text: 'Despertar',        icon: '⏰' },
-        { id: 't2', text: 'Ir al baño',       icon: '🚽' },
-        { id: 't3', text: 'Lavarme la cara',  icon: '🧼' },
-        { id: 't4', text: 'Vestirme',         icon: '👕' },
-        { id: 't5', text: 'Desayunar',        icon: '🥣' },
-        { id: 't6', text: 'Lavarme los dientes', icon: '🪥' },
-        { id: 't7', text: 'Mochila',          icon: '🎒' },
+        { id: 't1', text: 'Despertarse',              icon: '⏰' },
+        { id: 't2', text: 'Hacer pipí',                icon: '🚽' },
+        { id: 't3', text: 'Lavarse las manos con jabón', icon: '🧼' },
+        { id: 't4', text: 'Lavarse la cara',           icon: '💧' },
+        { id: 't5', text: 'Lavarse los dientes',       icon: '🪥' },
+        { id: 't6', text: 'Secarse con la toalla',     icon: '🧖' },
+        { id: 't7', text: 'Vestirse con la ropa de la escuela', icon: '👕' },
       ],
     },
     {

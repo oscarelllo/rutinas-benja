@@ -37,7 +37,12 @@ const Storage = {
   },
 
   saveData(data) {
-    localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(data));
+    try {
+      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(data));
+    } catch (e) {
+      console.error('No se pudo guardar (¿almacenamiento lleno?)', e);
+      window.alert('No se pudo guardar el cambio: el almacenamiento del dispositivo está lleno. Probá quitar alguna foto que no uses o usar una foto más liviana.');
+    }
   },
 
   /* ---------- Progreso diario (tareas completadas) ----------

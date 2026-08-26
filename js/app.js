@@ -38,6 +38,80 @@
   const inputRoutineIcon = document.getElementById('input-routine-icon');
   const chkSound = document.getElementById('chk-sound');
   const emojiPickerEl = document.getElementById('emoji-picker');
+  const btnRoutinePhoto = document.getElementById('btn-routine-photo');
+  const btnRoutineRemovePhoto = document.getElementById('btn-routine-remove-photo');
+  const routinePhotoPreview = document.getElementById('routine-photo-preview');
+  const routinePhotoPreviewImg = document.getElementById('routine-photo-preview-img');
+
+  /* ---------------- Fotos reales (cámara / galería) ---------------- */
+  let hiddenPhotoInput = null;
+  let photoInputCallback = null;
+
+  function getPhotoInput() {
+    if (hiddenPhotoInput) return hiddenPhotoInput;
+    hiddenPhotoInput = document.createElement('input');
+    hiddenPhotoInput.type = 'file';
+    hiddenPhotoInput.accept = 'image/*';
+    hiddenPhotoInput.capture = 'environment';
+    hiddenPhotoInput.style.display = 'none';
+    document.body.appendChild(hiddenPhotoInput);
+    hiddenPhotoInput.addEventListener('change', async () => {
+      const file = hiddenPhotoInput.files && hiddenPhotoInput.files[0];
+      hiddenPhotoInput.value = '';
+      if (!file || !photoInputCallback) return;
+      try {
+        const dataUrl = await compressImageFile(file, 480, 0.75);
+        photoInputCallback(dataUrl);
+      } catch (e) {
+        console.warn('No se pudo procesar la foto.', e);
+        window.alert('No se pudo cargar esa foto. Probá con otra imagen.');
+      }
+    });
+    return hiddenPhotoInput;
+  }
+
+  function pickPhoto(onSelected) {
+    photoInputCallback = onSelected;
+    getPhotoInput().click();
+  }
+
+  function compressImageFile(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Imagen inválida'));
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round(height * (maxDim / width));
+              width = maxDim;
+            } else {
+              width = Math.round(width * (maxDim / height));
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* Genera el marcado del ícono de una tarjeta: foto real si existe, si no el emoji */
+  function visualMarkup(entity, cssClass) {
+    if (entity.photo) {
+      return `<img class="${cssClass} photo-visual" src="${entity.photo}" alt="">`;
+    }
+    return `<span class="${cssClass}" aria-hidden="true">${entity.icon || '⭐'}</span>`;
+  }
 
   /* ---------------- Navegación entre pantallas ---------------- */
   function showScreen(name) {
@@ -58,7 +132,7 @@
       card.className = `routine-card color-${idx % COLOR_CLASS_COUNT}`;
       card.setAttribute('role', 'listitem');
       card.innerHTML = `
-        <span class="routine-icon" aria-hidden="true">${routine.icon}</span>
+        ${visualMarkup(routine, 'routine-icon')}
         <span class="routine-name">${escapeHtml(routine.name)}</span>
         <span class="routine-progress">${total ? `${done} / ${total} completadas` : 'Sin tareas'}</span>
       `;
@@ -94,7 +168,7 @@
       card.dataset.taskId = task.id;
       card.innerHTML = `
         <span class="task-check" aria-hidden="true">✅</span>
-        <span class="task-icon" aria-hidden="true">${task.icon}</span>
+        ${visualMarkup(task, 'task-icon')}
         <span class="task-name">${escapeHtml(task.text)}</span>
       `;
       card.addEventListener('click', () => toggleTask(routine.id, task.id, card));
@@ -163,7 +237,7 @@
       const item = document.createElement('div');
       item.className = 'manage-item';
       item.innerHTML = `
-        <span class="manage-emoji">${routine.icon}</span>
+        ${visualMarkup(routine, 'manage-emoji')}
         <span class="manage-label">${escapeHtml(routine.name)}</span>
         <span class="manage-sub">${routine.tasks.length} tareas</span>
         <button class="icon-btn" aria-label="Editar rutina">✏️</button>
@@ -201,6 +275,7 @@
     const routine = appData.routines.find(r => r.id === routineId);
     inputRoutineName.value = routine.name;
     inputRoutineIcon.value = routine.icon;
+    refreshRoutinePhotoPreview();
     renderTaskManageList();
     showEditPanel(true);
   }
@@ -218,47 +293,93 @@
     return appData.routines.find(r => r.id === editingRoutineId);
   }
 
+  function refreshRoutinePhotoPreview() {
+    const routine = getEditingRoutine();
+    if (routine && routine.photo) {
+      routinePhotoPreviewImg.src = routine.photo;
+      routinePhotoPreview.classList.remove('hidden');
+      btnRoutineRemovePhoto.classList.remove('hidden');
+    } else {
+      routinePhotoPreview.classList.add('hidden');
+      btnRoutineRemovePhoto.classList.add('hidden');
+    }
+  }
+
+  btnRoutinePhoto.addEventListener('click', () => {
+    pickPhoto((dataUrl) => {
+      const routine = getEditingRoutine();
+      routine.photo = dataUrl;
+      Storage.saveData(appData);
+      refreshRoutinePhotoPreview();
+    });
+  });
+
+  btnRoutineRemovePhoto.addEventListener('click', () => {
+    const routine = getEditingRoutine();
+    delete routine.photo;
+    Storage.saveData(appData);
+    refreshRoutinePhotoPreview();
+  });
+
   function renderTaskManageList() {
     const routine = getEditingRoutine();
     taskManageList.innerHTML = '';
     routine.tasks.forEach((task, idx) => {
       const item = document.createElement('div');
-      item.className = 'manage-item';
+      item.className = 'manage-item task-manage-item';
       item.innerHTML = `
-        <button class="icon-btn manage-emoji-btn" aria-label="Cambiar ícono">${task.icon}</button>
-        <input type="text" class="text-input manage-task-input" style="min-height:44px; flex:1;" value="${escapeAttr(task.text)}">
-        <button class="icon-btn" aria-label="Subir" ${idx === 0 ? 'disabled style="opacity:.3"' : ''}>⬆️</button>
-        <button class="icon-btn" aria-label="Bajar" ${idx === routine.tasks.length - 1 ? 'disabled style="opacity:.3"' : ''}>⬇️</button>
-        <button class="icon-btn danger" aria-label="Eliminar tarea">🗑️</button>
+        <div class="manage-item-top">
+          <button class="thumb-btn" data-action="emoji" aria-label="Elegir emoji">
+            ${visualMarkup(task, 'thumb-visual')}
+          </button>
+          <input type="text" class="text-input manage-task-input" value="${escapeAttr(task.text)}">
+        </div>
+        <div class="manage-item-toolbar">
+          <button class="icon-btn small" data-action="photo" aria-label="Usar foto">📷</button>
+          <button class="icon-btn small danger${task.photo ? '' : ' hidden'}" data-action="remove-photo" aria-label="Quitar foto">✕ foto</button>
+          <span class="toolbar-spacer"></span>
+          <button class="icon-btn small" data-action="up" aria-label="Subir" ${idx === 0 ? 'disabled style="opacity:.3"' : ''}>⬆️</button>
+          <button class="icon-btn small" data-action="down" aria-label="Bajar" ${idx === routine.tasks.length - 1 ? 'disabled style="opacity:.3"' : ''}>⬇️</button>
+          <button class="icon-btn small danger" data-action="delete" aria-label="Eliminar tarea">🗑️</button>
+        </div>
       `;
-      const [emojiBtn, textInput, upBtn, downBtn, delBtn] = item.querySelectorAll('button, input');
 
-      emojiBtn.addEventListener('click', () => {
+      const textInput = item.querySelector('.manage-task-input');
+      textInput.addEventListener('input', () => { task.text = textInput.value; });
+      textInput.addEventListener('blur', () => { Storage.saveData(appData); });
+
+      item.querySelector('[data-action="emoji"]').addEventListener('click', () => {
         openEmojiPicker((emoji) => {
           task.icon = emoji;
-          emojiBtn.textContent = emoji;
           Storage.saveData(appData);
+          renderTaskManageList();
         });
       });
-      textInput.addEventListener('input', () => {
-        task.text = textInput.value;
+      item.querySelector('[data-action="photo"]').addEventListener('click', () => {
+        pickPhoto((dataUrl) => {
+          task.photo = dataUrl;
+          Storage.saveData(appData);
+          renderTaskManageList();
+        });
       });
-      textInput.addEventListener('blur', () => {
+      item.querySelector('[data-action="remove-photo"]').addEventListener('click', () => {
+        delete task.photo;
         Storage.saveData(appData);
+        renderTaskManageList();
       });
-      upBtn.addEventListener('click', () => {
+      item.querySelector('[data-action="up"]').addEventListener('click', () => {
         if (idx === 0) return;
         [routine.tasks[idx - 1], routine.tasks[idx]] = [routine.tasks[idx], routine.tasks[idx - 1]];
         Storage.saveData(appData);
         renderTaskManageList();
       });
-      downBtn.addEventListener('click', () => {
+      item.querySelector('[data-action="down"]').addEventListener('click', () => {
         if (idx === routine.tasks.length - 1) return;
         [routine.tasks[idx + 1], routine.tasks[idx]] = [routine.tasks[idx], routine.tasks[idx + 1]];
         Storage.saveData(appData);
         renderTaskManageList();
       });
-      delBtn.addEventListener('click', () => {
+      item.querySelector('[data-action="delete"]').addEventListener('click', () => {
         routine.tasks.splice(idx, 1);
         Storage.saveData(appData);
         renderTaskManageList();
@@ -322,7 +443,7 @@
     if (!emojiPickerEl.classList.contains('hidden') &&
         !emojiPickerEl.contains(e.target) &&
         e.target.id !== 'input-routine-icon' &&
-        !e.target.classList.contains('manage-emoji-btn')) {
+        !e.target.closest('[data-action="emoji"]')) {
       closeEmojiPicker();
     }
   });

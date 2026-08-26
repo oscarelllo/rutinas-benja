@@ -90,8 +90,15 @@
       </div>
 
       <div class="edit-row">
-        <label for="input-routine-icon">Ícono</label>
-        <input type="text" id="input-routine-icon" maxlength="4" class="emoji-input" value="🌞">
+        <label for="input-routine-icon">Ícono (se usa si no hay foto)</label>
+        <div class="icon-photo-row">
+          <input type="text" id="input-routine-icon" maxlength="4" class="emoji-input" value="🌞">
+          <button id="btn-routine-photo" class="btn-pill" type="button">📷 Foto</button>
+          <button id="btn-routine-remove-photo" class="btn-pill danger-pill hidden" type="button">✕ Quitar foto</button>
+        </div>
+        <div id="routine-photo-preview" class="routine-photo-preview hidden">
+          <img id="routine-photo-preview-img" src="" alt="Vista previa de la foto">
+        </div>
       </div>
       <div class="edit-row">
         <label for="input-routine-name">Nombre de la rutina</label>
