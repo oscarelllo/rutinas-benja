@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Mis Rutinas</title>
+<meta name="description" content="Tablero de rutinas visuales e interactivas para niños">
+<meta name="theme-color" content="#8FD3C7">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Rutinas">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ===================== PANTALLA A: SELECTOR DE RUTINA ===================== -->
+<section id="screen-home" class="screen" aria-label="Selector de rutina">
+  <header class="home-header">
+    <h1 class="app-title">🌈 Mis Rutinas</h1>
+    <button id="btn-settings" class="btn-icon-corner" aria-label="Configuración / Modo Padre" title="Configuración">
+      ⚙️
+    </button>
+  </header>
+
+  <div id="routine-cards" class="routine-grid" role="list">
+    <!-- tarjetas de rutina generadas por JS -->
+  </div>
+</section>
+
+<!-- ===================== PANTALLA B: TABLERO DE RUTINA ===================== -->
+<section id="screen-board" class="screen hidden" aria-label="Tablero de rutina">
+  <header class="board-header">
+    <button id="btn-back-home" class="btn-back" aria-label="Volver al menú">
+      <span aria-hidden="true">←</span> Menú
+    </button>
+    <h2 id="board-title" class="board-title">Rutina</h2>
+    <button id="btn-reset-routine" class="btn-reset" aria-label="Reiniciar rutina" title="Reiniciar rutina">
+      ↺
+    </button>
+  </header>
+
+  <div id="task-grid" class="task-grid" role="list">
+    <!-- tarjetas de tarea generadas por JS -->
+  </div>
+</section>
+
+<!-- ===================== CAPA DE FELICITACIÓN ===================== -->
+<div id="celebration" class="celebration hidden" aria-hidden="true">
+  <canvas id="confetti-canvas"></canvas>
+  <div class="celebration-message">
+    <div class="celebration-emoji">🎉</div>
+    <div class="celebration-text">¡Rutina completa!</div>
+  </div>
+</div>
+
+<!-- ===================== MODO CONFIGURACIÓN / PADRE ===================== -->
+<section id="screen-settings" class="screen hidden" aria-label="Configuración">
+  <header class="board-header">
+    <button id="btn-close-settings" class="btn-back" aria-label="Cerrar configuración">
+      <span aria-hidden="true">←</span> Salir
+    </button>
+    <h2 class="board-title">Modo Padre</h2>
+    <span style="width:60px" aria-hidden="true"></span>
+  </header>
+
+  <div class="settings-body">
+
+    <div id="settings-routine-list" class="settings-panel">
+      <div class="settings-panel-header">
+        <h3>Rutinas</h3>
+        <button id="btn-add-routine" class="btn-pill">+ Nueva rutina</button>
+      </div>
+      <div id="routine-manage-list" class="manage-list"></div>
+
+      <div class="settings-panel-header" style="margin-top:24px;">
+        <h3>Sonido</h3>
+      </div>
+      <label class="switch-row">
+        <span>Sonido de felicitación</span>
+        <input type="checkbox" id="chk-sound" checked>
+      </label>
+    </div>
+
+    <div id="settings-routine-edit" class="settings-panel hidden">
+      <div class="settings-panel-header">
+        <button id="btn-back-to-routines" class="btn-back-small">← Rutinas</button>
+      </div>
+
+      <div class="edit-row">
+        <label for="input-routine-icon">Ícono</label>
+        <input type="text" id="input-routine-icon" maxlength="4" class="emoji-input" value="🌞">
+      </div>
+      <div class="edit-row">
+        <label for="input-routine-name">Nombre de la rutina</label>
+        <input type="text" id="input-routine-name" class="text-input" placeholder="Ej: Rutina de Mañana">
+      </div>
+
+      <div class="settings-panel-header" style="margin-top:20px;">
+        <h3>Tareas</h3>
+        <button id="btn-add-task" class="btn-pill">+ Tarea</button>
+      </div>
+      <div id="task-manage-list" class="manage-list"></div>
+
+      <div class="edit-actions">
+        <button id="btn-delete-routine" class="btn-danger">Eliminar rutina</button>
+        <button id="btn-save-routine" class="btn-primary">Guardar cambios</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Plantilla de emojis rápidos para elegir pictograma -->
+<div id="emoji-picker" class="emoji-picker hidden"></div>
+
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/confetti.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
