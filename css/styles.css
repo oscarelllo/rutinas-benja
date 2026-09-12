@@ -88,10 +88,18 @@ button, input {
   cursor: pointer;
   opacity: 0.6;
   transition: transform .15s ease, opacity .15s ease;
+  touch-action: none;
+  -webkit-touch-callout: none;
 }
 .btn-icon-corner:active {
   transform: scale(0.9);
   opacity: 1;
+}
+.btn-icon-corner.holding {
+  transition: transform .9s ease, opacity .9s ease, background .9s ease;
+  transform: scale(1.15);
+  opacity: 1;
+  background: var(--primary);
 }
 
 .routine-grid {

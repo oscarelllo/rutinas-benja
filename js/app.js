@@ -206,15 +206,28 @@
   }
 
   /* ---------------- MODO CONFIGURACIÓN: acceso protegido ---------------- */
+  // touch-action:none + bloquear el menú contextual evita que un toque
+  // prolongado real (con el jitter normal del dedo) sea interpretado por el
+  // navegador como intento de scroll o menú de selección, lo que cancelaba
+  // el pointerdown antes de llegar a los 900ms.
   let holdTimer = null;
-  btnSettings.addEventListener('pointerdown', () => {
+  let holdPointerId = null;
+  btnSettings.addEventListener('contextmenu', (e) => e.preventDefault());
+  btnSettings.addEventListener('pointerdown', (e) => {
+    if (holdPointerId !== null) return; // ignorar un segundo dedo
+    holdPointerId = e.pointerId;
+    e.preventDefault();
     btnSettings.style.transition = 'none';
+    btnSettings.classList.add('holding');
     holdTimer = setTimeout(() => {
       enterSettings();
     }, 900);
   });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
-    btnSettings.addEventListener(evt, () => {
+    btnSettings.addEventListener(evt, (e) => {
+      if (holdPointerId !== null && e.pointerId !== holdPointerId) return;
+      holdPointerId = null;
+      btnSettings.classList.remove('holding');
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
     });
   });
